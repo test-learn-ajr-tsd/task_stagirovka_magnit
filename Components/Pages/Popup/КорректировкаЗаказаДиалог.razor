@@ -1,0 +1,39 @@
+﻿@page "/dialogOrder/{ID_заказа}"
+@rendermode InteractiveServer
+
+@inherits ТестЗаполнениеЗаказы
+@inject DialogService сервисДиалога
+
+<RadzenStack Gap="1.5rem">
+    <RadzenTemplateForm @formname="editOrder" @OnValidSubmit="@Применить" TItem="Заказ" Data="заказ">
+    <RadzenLabel>
+        Измерение: <RadzenDropDown TValue="ЕдиницыИзмерения" Value="заказ.ЕдиницыИзмерения"></RadzenDropDown> <RadzenNumeric id="Колво" TValue="float" Value="заказ.Количество" />
+
+    </RadzenLabel>
+    <RadzenLabel Component="ДатаЗаказа">Дата заказа: <RadzenDatePicker Name="датаЗаказ" TValue="DateOnly" Value="заказ.ДатаЗаказа" /></RadzenLabel>
+    <RadzenLabel>Дата отгрузки: <RadzenDatePicker TValue="DateOnly" Value="заказ.ДатаОтгрузки" /></RadzenLabel>
+    <RadzenLabel>
+        Причина корректировки:
+        <RadzenDropDown TValue="string" Data=@заказ.ПричинаКорректировки TextProperty="Наименование" />
+    </RadzenLabel>
+        <RadzenButton ButtonType="ButtonType.Submit">Применить</RadzenButton>
+    </RadzenTemplateForm>
+</RadzenStack>
+
+@code {
+    [Parameter] public int ID_заказа { get; set; }
+    Заказ заказ, модель;
+    EditContext контекстПравки;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        заказ = Заказы.Where(order => order.Id == ID_заказа).FirstOrDefault();        
+    }
+
+    void Применить(Заказ заказ)
+    {
+        Console.WriteLine(заказ.Количество);
+        
+    }
+}
