@@ -5,25 +5,19 @@
 @inject DialogService сервисДиалога
 
 <RadzenStack>
+    @* Style="padding: 20px" *@
     <RadzenTemplateForm TItem="Заказ" Data="заказ">
-        <RadzenRow>
+        <RadzenRow Style="margin: 5px">
             <RadzenLabel>
-                Изменить план: Дата заказа: @заказ.ДатаЗаказа - @заказ.Поставщик.Наименование<br />
-                Тип изменения: целевой объем
+                Изменить план: @заказ.Товар.Наименование<br />
+                Тип изменения: целевое значение
             </RadzenLabel>
         </RadzenRow>
         <RadzenRow>
             <RadzenLabel>
-                Измерение: <RadzenDropDown Data="@(Enum.GetValues(typeof(ЕдиницыИзмерения)).Cast<Enum>())" @bind-Value=@заказ.ЕдиницыИзмерения
-                                           AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Name="DropDownEnums">
-                </RadzenDropDown>
-                Объем: <RadzenNumeric TValue="float" Value="заказ.Количество" />
-            </RadzenLabel>
-        </RadzenRow>
-        <RadzenRow>
-            <RadzenLabel>
-                <RadzenLabel>Дата заказа: <RadzenDatePicker Name="датаЗаказ" TValue="DateOnly" Value="заказ.ДатаЗаказа" /></RadzenLabel>
-                <RadzenLabel>Дата отгрузки: <RadzenDatePicker TValue="DateOnly" Value="заказ.ДатаОтгрузки" /></RadzenLabel>
+                Шт./кг.: Измерение: <RadzenDropDown Data="@(Enum.GetValues(typeof(ЕдиницыИзмерения)).Cast<Enum>())" @bind-Value=@заказ.ЕдиницыИзмерения
+                                                    AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Name="DropDownEnums">
+                </RadzenDropDown> <RadzenNumeric TValue="float" Value="заказ.Количество" />
             </RadzenLabel>
         </RadzenRow>
         <RadzenRow Style="width: 100%">
@@ -43,30 +37,30 @@
 
 @code {
     [Parameter] public int ID_заказа { get; set; }
-    Заказ заказ, модель;
+    Заказ заказ;
     List<string> причиныКорректировкиВыбор;
     bool НедоступноПолеДругаяПричинаКорректировки = true;
     string выбраннаяПричинаКорректировки;
-    string другаяПричинаКорректировки;
+    string другаяПричинаКорректировки = "";
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         заказ = Заказы.Where(order => order.Id == ID_заказа).FirstOrDefault();
-        
+
         причиныКорректировкиВыбор = new List<string>()
         {
             "Дозаказ", "Брак", "Ошибка прогноза", /* ..., */ "Другая причина"
         };
-
-        if (причиныКорректировкиВыбор.Contains(заказ.ПричинаКорректировки))
-            выбраннаяПричинаКорректировки = заказ.ПричинаКорректировки;
+        
+        if (причиныКорректировкиВыбор.Contains(заказ.ПричинаКорректировки))        
+            выбраннаяПричинаКорректировки = заказ.ПричинаКорректировки;         
         else
         {
             выбраннаяПричинаКорректировки = "Другая причина";
             НедоступноПолеДругаяПричинаКорректировки = false;
             другаяПричинаКорректировки = заказ.ПричинаКорректировки;
-        }
+        }        
     }
 
     void ВыборПричиныКорректировки()

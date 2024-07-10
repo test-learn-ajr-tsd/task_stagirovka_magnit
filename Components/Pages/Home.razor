@@ -1,48 +1,82 @@
 ﻿@page "/"
-
 @rendermode InteractiveServer
 
+@* TODO: русские названия убрать *@
+
 @inherits ТестЗаполнениеЗаказы
+@inject ContextMenuService сервисКонтекстногоМеню
 @inject DialogService сервисДиалога
 
 @using ЗаданиеТестСтажировкаМагнитПриложениеBlazor.Components.Pages.Popup
 
 <PageTitle>Home</PageTitle>
 
+<RadzenContextMenu />
 <RadzenDialog />
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
 
-<RadzenDataGrid Data="@Заказы" TItem="Заказ">
+<RadzenDataGrid Data="@Заказы" TItem="Заказ" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@выбранныйЗаказ CellContextMenu="ФункцияКонтекстноеМенюЯчейки">
     <Columns>
         <RadzenDataGridColumn TItem="Заказ" Property="Поставщик.Наименование" Title="Наименование товара" />
         <RadzenDataGridColumn TItem="Заказ" Property="Товар.Наименование" Title="Наименование товара" />
         <RadzenDataGridColumn TItem="Заказ" Property="ЕдиницыИзмерения" Title="Ед. измерения" />
         <RadzenDataGridColumn TItem="Заказ" Property="Количество" Title="Количество" />
         <RadzenDataGridColumn TItem="Заказ" Property="ДатаЗаказа" Title="Дата заказа" />
-        <RadzenDataGridColumn TItem="Заказ" Property="ДатаОтгрузки" Title="Дата отгрузки" />
-        <RadzenDataGridColumn></RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Заказ" Property="ДатаОтгрузки" Title="Дата отгрузки" />        
     </Columns>
 </RadzenDataGrid>
 @* <RadzenLabel>Единицы измерения: <RadzenDropDown TValue="Enum" Data="ЕдиницыИзмерения"></RadzenDropDown></RadzenLabel> *@
 
-<div class="rz-p-12 rz-text-align-center">
-    <RadzenButton Text="Confirm dialog" ButtonStyle="ButtonStyle.Secondary"
-                  Click=@(args => сервисДиалога.Confirm("Are you sure?", "MyTitle", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" })) />
-</div>
-
-<RadzenButton Text="Dialog with inline Blazor content" ButtonStyle="ButtonStyle.Secondary" Click=@ПоказатьОкно />
 @code {
-    ЕдиницыИзмерения едИзм;
-    int ID_заказа = 2;
+    IList<Заказ> выбранныйЗаказ; 
 
-    async Task ПоказатьОкно()
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        выбранныйЗаказ = Заказы.Take(1).ToList();
+    }
+
+    void ФункцияКонтекстноеМенюЯчейки(DataGridCellMouseEventArgs<Заказ> арг)
+    {
+        выбранныйЗаказ = new List<Заказ>() { арг.Data };
+
+        сервисКонтекстногоМеню.Open(арг,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem() { Text = "Изменить целевое значение", Value = 1},
+                new ContextMenuItem() { Text = "Изменить целевой объем", Value = 2}
+            }, (соб) =>
+            {
+                switch(соб.Value)
+                {
+                    case 1:
+                        ПоказатьОкноЦелевоеЗначение(арг.Data.Id);
+                        break;
+                    case 2:
+                        ПоказатьОкноЦелевойОбъем(арг.Data.Id);
+                        break;
+                }                
+            });
+    }
+        
+    async Task ПоказатьОкноЦелевойОбъем(int ID_заказа)
     {
         await сервисДиалога.OpenAsync<КорректировкаЗаказаДиалог>("Заказ ",
         new Dictionary<string, object>() { { "ID_заказа", ID_заказа } });
     }
 
+    async Task ПоказатьОкноЦелевоеЗначение(int ID_заказа)
+    {
+        await сервисДиалога.OpenAsync<КорректировкаЗаказаДиалогПоТовару>("Заказ ",
+        new Dictionary<string, object>() { { "ID_заказа", ID_заказа } });
+    }
 }
 
+<div class="rz-p-12 rz-text-align-center">
+    <RadzenButton Text="Confirm dialog" ButtonStyle="ButtonStyle.Secondary"
+                  Click=@(args => сервисДиалога.Confirm("Are you sure?", "MyTitle", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" })) />
+</div>
