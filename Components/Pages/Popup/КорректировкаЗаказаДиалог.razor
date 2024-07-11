@@ -4,8 +4,8 @@
 @inherits ТестЗаполнениеЗаказы
 @inject DialogService сервисДиалога
 
-<RadzenStack>
-    <RadzenTemplateForm TItem="Заказ" Data="заказ">
+
+    <RadzenTemplateForm TItem="Заказ" Data="заказ" Style="width: 700px; align-items: center">
         <RadzenRow>
             <RadzenLabel>
                 Изменить план: Дата заказа: @заказ.ДатаЗаказа - @заказ.Поставщик.Наименование<br />
@@ -13,33 +13,39 @@
             </RadzenLabel>
         </RadzenRow>
         <RadzenRow>
-            <RadzenLabel>
+            <RadzenColumn>
                 Измерение: <RadzenDropDown Data="@(Enum.GetValues(typeof(ЕдиницыИзмерения)).Cast<Enum>())" @bind-Value=@заказ.ЕдиницыИзмерения
                                            AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Name="DropDownEnums">
                 </RadzenDropDown>
+            </RadzenColumn>
+            <RadzenColumn>
                 Объем: <RadzenNumeric TValue="float" Value="заказ.Количество" />
-            </RadzenLabel>
+            </RadzenColumn>           
         </RadzenRow>
         <RadzenRow>
-            <RadzenLabel>
-                <RadzenLabel>Дата заказа: <RadzenDatePicker Name="датаЗаказ" TValue="DateOnly" Value="заказ.ДатаЗаказа" /></RadzenLabel>
-                <RadzenLabel>Дата отгрузки: <RadzenDatePicker TValue="DateOnly" Value="заказ.ДатаОтгрузки" /></RadzenLabel>
-            </RadzenLabel>
+            <RadzenColumn>
+                Дата заказа: <RadzenDatePicker Name="датаЗаказ" TValue="DateOnly" Value="заказ.ДатаЗаказа" />
+            </RadzenColumn>
+            <RadzenColumn>
+                Дата отгрузки: <RadzenDatePicker TValue="DateOnly" Value="заказ.ДатаОтгрузки" />
+            </RadzenColumn>                           
         </RadzenRow>
-        <RadzenRow Style="width: 100%">
+        <RadzenRow>
             <RadzenLabel Style="width: 100%">
-                Причина корректировки: <br />
-                <RadzenDropDown TValue="string" Data="@причиныКорректировкиВыбор" @bind-Value="@выбраннаяПричинаКорректировки" Change="ВыборПричиныКорректировки" Style="width: 100%" />
-            </RadzenLabel>
+                Причина корректировки:
+                <RadzenDropDown TValue="string" Data="@причиныКорректировкиВыбор" @bind-Value="@выбраннаяПричинаКорректировки" Change="ВыборПричиныКорректировки" Placeholder="Выберите причину корректировки..." Style="width: 100%" />
+            </RadzenLabel>                        
         </RadzenRow>
-        <RadzenRow Style="width: 100%">
+        <RadzenRow>
             <RadzenLabel Style="width: 100%">
                 <RadzenTextArea Disabled="@НедоступноПолеДругаяПричинаКорректировки" @bind-Value=@другаяПричинаКорректировки Style="width: 100%" />
             </RadzenLabel>
         </RadzenRow>
-        <RadzenButton ButtonType="ButtonType.Submit">Применить</RadzenButton>
+        <RadzenRow Style="float: right">
+            <RadzenButton ButtonType="ButtonType.Submit" >Применить</RadzenButton>
+        </RadzenRow>        
     </RadzenTemplateForm>
-</RadzenStack>
+
 
 @code {
     [Parameter] public int ID_заказа { get; set; }
@@ -53,25 +59,37 @@
     {
         await base.OnInitializedAsync();
         заказ = Заказы.Where(order => order.Id == ID_заказа).FirstOrDefault();
-        
+
         причиныКорректировкиВыбор = new List<string>()
         {
             "Дозаказ", "Брак", "Ошибка прогноза", /* ..., */ "Другая причина"
         };
 
-        if (причиныКорректировкиВыбор.Contains(заказ.ПричинаКорректировки))
-            выбраннаяПричинаКорректировки = заказ.ПричинаКорректировки;
-        else
+        if(!string.IsNullOrWhiteSpace(заказ.ПричинаКорректировки))
         {
-            выбраннаяПричинаКорректировки = "Другая причина";
-            НедоступноПолеДругаяПричинаКорректировки = false;
-            другаяПричинаКорректировки = заказ.ПричинаКорректировки;
+            if (причиныКорректировкиВыбор.Contains(заказ.ПричинаКорректировки))
+                выбраннаяПричинаКорректировки = заказ.ПричинаКорректировки;
+            else
+            {
+                выбраннаяПричинаКорректировки = "Другая причина";
+                НедоступноПолеДругаяПричинаКорректировки = false;
+                другаяПричинаКорректировки = заказ.ПричинаКорректировки;
+            }
         }
+        
     }
 
     void ВыборПричиныКорректировки()
     {
-        НедоступноПолеДругаяПричинаКорректировки = выбраннаяПричинаКорректировки == "Другая причина" ? false : true;
+        if (выбраннаяПричинаКорректировки == "Другая причина")
+        {
+            НедоступноПолеДругаяПричинаКорректировки = false;
+        }
+        else
+        {
+            НедоступноПолеДругаяПричинаКорректировки = true;
+            другаяПричинаКорректировки = "";
+        }
     }
 
     void Применить(Заказ заказ)

@@ -59,6 +59,9 @@ Welcome to your new app.
                     case 2:
                         ПоказатьОкноЦелевойОбъем(арг.Data.Id);
                         break;
+                    default:
+                        сервисДиалога.Alert("Функция неизвестна!", "Ошибка");
+                        break;
                 }                
             });
     }
@@ -66,17 +69,14 @@ Welcome to your new app.
     async Task ПоказатьОкноЦелевойОбъем(int ID_заказа)
     {
         await сервисДиалога.OpenAsync<КорректировкаЗаказаДиалог>("Заказ ",
-        new Dictionary<string, object>() { { "ID_заказа", ID_заказа } });
+        new Dictionary<string, object>() { { "ID_заказа", ID_заказа } },
+        new DialogOptions() { Width = "750px", CloseDialogOnOverlayClick = true, Left = "20px" });
     }
 
     async Task ПоказатьОкноЦелевоеЗначение(int ID_заказа)
     {
         await сервисДиалога.OpenAsync<КорректировкаЗаказаДиалогПоТовару>("Заказ ",
-        new Dictionary<string, object>() { { "ID_заказа", ID_заказа } });
+        new Dictionary<string, object>() { { "ID_заказа", ID_заказа } }, 
+        new DialogOptions() { CloseDialogOnOverlayClick = true, Left = "20px" });
     }
 }
-
-<div class="rz-p-12 rz-text-align-center">
-    <RadzenButton Text="Confirm dialog" ButtonStyle="ButtonStyle.Secondary"
-                  Click=@(args => сервисДиалога.Confirm("Are you sure?", "MyTitle", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" })) />
-</div>
