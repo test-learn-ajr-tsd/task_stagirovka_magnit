@@ -1,0 +1,82 @@
+﻿@page "/dialogOrder/{order_ID}"
+@rendermode InteractiveServer
+
+@inherits TestFillOrders
+@inject DialogService dialogService
+
+<RadzenStack>
+    @* Style="padding: 20px" *@
+    <RadzenTemplateForm TItem="Order" Data="order">
+        <RadzenRow Style="margin: 5px">
+            <RadzenLabel>
+                Изменить план: @order.Product.Name<br />
+                Тип изменения: целевое значение
+            </RadzenLabel>
+        </RadzenRow>
+        <RadzenRow>
+            <RadzenLabel>
+                Шт./кг.: Измерение: <RadzenDropDown Data="@(Enum.GetValues(typeof(Units)).Cast<Enum>())" @bind-Value=@order.Unit
+                                                    AllowClear="true" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Name="DropDownEnums">
+                </RadzenDropDown> <RadzenNumeric TValue="float" Value="order.CountOfProduct" />
+            </RadzenLabel>
+        </RadzenRow>
+        <RadzenRow Style="width: 100%">
+            <RadzenLabel Style="width: 100%">
+                Причина корректировки: <br />
+                <RadzenDropDown TValue="string" Data="@selectCorrectionReason" @bind-Value="@selectedCorrectionReason" Change="ChangeChoiceCorrectionReason" Placeholder="Выберите причину корректировки..." Style="width: 100%" />
+            </RadzenLabel>
+        </RadzenRow>
+        <RadzenRow Style="width: 100%">
+            <RadzenLabel Style="width: 100%">
+                <RadzenTextArea Disabled="@NotAvailableOtherCorrectionReason" @bind-Value=@otherCorrectionReason Style="width: 100%" />
+            </RadzenLabel>
+        </RadzenRow>
+        <RadzenRow Style="float: right">
+            <RadzenButton ButtonType="ButtonType.Submit">Применить</RadzenButton>
+        </RadzenRow>
+    </RadzenTemplateForm>
+</RadzenStack>
+
+@code {
+    [Parameter] public int order_ID { get; set; }
+    Order order;
+    List<string> selectCorrectionReason;
+    bool NotAvailableOtherCorrectionReason = true;
+    string selectedCorrectionReason;
+    string otherCorrectionReason = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        order = Orders.Where(order => order.Id == order_ID).FirstOrDefault();
+
+        selectCorrectionReason = new List<string>()
+        {
+            "Дозаказ", "Брак", "Ошибка прогноза", /* ..., */ "Другая причина"
+        };
+
+        if (!string.IsNullOrWhiteSpace(order.CorrectionReason))
+        {
+            if (selectCorrectionReason.Contains(order.CorrectionReason))
+                selectedCorrectionReason = order.CorrectionReason;
+            else
+            {
+                selectedCorrectionReason = "Другая причина";
+                NotAvailableOtherCorrectionReason = false;
+                otherCorrectionReason = order.CorrectionReason;
+            }
+        }
+    }
+
+    void ChangeChoiceCorrectionReason()
+    {
+        if (selectedCorrectionReason == "Другая причина")
+        {
+            NotAvailableOtherCorrectionReason = false;
+        } else
+        {
+            NotAvailableOtherCorrectionReason = true;
+            otherCorrectionReason = "";
+        }         
+    }
+}
